@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access Key</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    label, input, button {
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Enter Access Key</h1>
+  <label for="accessKey">Access Key:</label>
+  <input type="text" id="accessKey" name="accessKey">
+  <button onclick="validateAccessKey()">Submit</button>
+
+  <script>
+    const tradesmanData = {
+      'rafal123': { name: 'Rafal Maintenance', logo: 'logo1.png', contact: 'Contact: 555-1234' },
+      'john678': { name: 'John’s Painting', logo: 'logo2.png', contact: 'Contact: 555-5678' }
+    };
+
+    function validateAccessKey() {
+      const accessKey = document.getElementById('accessKey').value;
+      if (tradesmanData[accessKey]) {
+        localStorage.setItem('accessKey', accessKey);
+        window.location.href = 'calculator.html';
+      } else {
+        alert('Invalid Access Key');
+      }
+    }
+  </script>
+</body>
+</html>
