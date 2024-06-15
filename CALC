@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Cost Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    h1 {
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select, textarea, button {
+      font-size: 1em;
+      margin-top: 5px;
+      padding: 10px;
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    #estimatedCost {
+      font-size: 1.5em;
+      margin-top: 20px;
+      color: #555;
+    }
+    .service-fields {
+      display: none;
+      margin-top: 20px;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="tradesmanName">Service Cost Calculator</h1>
+
+    <label for="serviceType">Select Service:</label>
+    <select id="serviceType" name="serviceType" onchange="displayServiceFields()">
+      <option value="painting">Painting</option>
+      <option value="jetWashing">Jet Washing</option>
+      <option value="guttering">Guttering</option>
+    </select>
+
+    <div id="paintingFields" class="service-fields">
+      <label for="paintingArea">Area (sq meters):</label>
+      <input type="number" id="paintingArea" name="paintingArea">
+
+      <label for="paintLocation">Location:</label>
+      <select id="paintLocation" name="paintLocation">
+        <option value="interior">Interior</option>
+        <option value="exterior">Exterior</option>
+      </select>
+      
+      <label for="paintType">Paint Type:</label>
+      <select id="paintType" name="paintType">
+        <option value="standard">Standard</option>
+        <option value="premium">Premium</option>
+      </select>
+
+      <label for="complexity">Complexity:</label>
+      <select id="complexity" name="complexity">
+        <option value="basic">Basic</option>
+        <option value="moderate">Moderate</option>
+        <option value="complex">Complex</option>
+      </select>
+      
+      <label for="coats">Number of Coats:</label>
+      <select id="coats" name="coats">
+        <option value="1">1 Coat</option>
+        <option value="2">2 Coats</option>
+      </select>
+
+      <label for="prepWork">Preparation Work Needed:</label>
+      <textarea id="prepWork" name="prepWork" rows="4" cols="50"></textarea>
+    </div>
+
+    <div id="jetWashingFields" class="service-fields">
+      <label for="jetWashingArea">Area (sq meters):</label>
+      <input type="number" id="jetWashingArea" name="jetWashingArea">
+
+      <label for="surfaceType">Surface Type:</label>
+      <select id="surfaceType" name="surfaceType">
+        <option value="concrete">Concrete</option>
+        <option value="wood">Wood</option>
+        <option value="brick">Brick</option>
+      </select>
+
+      <label for="surfaceLocation">Surface Location:</label>
+      <select id="surfaceLocation" name="surfaceLocation">
+        <option value="wall">Wall</option>
+        <option value="floor">Floor</option>
+        <option value="roof">Roof</option>
+      </select>
+
+      <label for="dirtLevel">Dirt Level:</label>
+      <select id="dirtLevel" name="dirtLevel">
+        <option value="light">Light</option>
+        <option value="moderate">Moderate</option>
+        <option value="heavy">Heavy</option>
+      </select>
+    </div>
+
+    <div id="gutteringFields" class="service-fields">
+      <label for="gutterLength">Length (meters):</label>
+      <input type="number" id="gutterLength" name="gutterLength">
+
+      <label for="gutterType">Gutter Type:</label>
+      <select id="gutterType" name="gutterType">
+        <option value="pvc">PVC</option>
+        <option value="aluminum">Aluminum</option>
+      </select>
+
+      <label for="accessibility">Accessibility:</label>
+      <select id="accessibility" name="accessibility">
+        <option value="easy">Easy</option>
+        <option value="moderate">Moderate</option>
+        <option value="difficult">Difficult</option>
+      </select>
+
+      <label for="additionalInfo">Additional Information:</label>
+      <textarea id="additionalInfo" name="additionalInfo" rows="4" cols="50"></textarea>
+    </div>
+
+    <button onclick="calculateCost()">Calculate</button>
+
+    <p id="estimatedCost">Estimated Cost: £0.00</p>
+  </div>
+
+  <script>
+    const tradesmanData = {
+      'rafal123': { name: 'Rafal Maintenance', logo: 'logo1.png', contact: 'Contact: 555-1234' },
+      'john678': { name: 'John’s Painting', logo: 'logo2.png', contact: 'Contact: 555-5678' }
+    };
+
+    window.onload = function() {
+      const accessKey = localStorage.getItem('accessKey');
+      if (tradesmanData[accessKey]) {
+        const tradesman = tradesmanData[accessKey];
+        document.getElementById('tradesmanName').innerText = `${tradesman.name} - Service Cost Calculator`;
+      } else {
+        alert('Invalid Access Key');
+        window.location.href = 'access-key.html';
+      }
+    };
+
+    function displayServiceFields() {
+      const serviceType = document.getElementById('serviceType').value;
+      document.getElementById('paintingFields').style.display = 'none';
+      document.getElementById('jetWashingFields').style.display = 'none';
+      document.getElementById('gutteringFields').style.display = 'none';
+
+      if (serviceType === 'painting') {
+        document.getElementById('paintingFields').style.display = 'block';
+      } else if (serviceType === 'jetWashing') {
+        document.getElementById('jetWashingFields').style.display = 'block';
+      } else if (serviceType === 'guttering') {
+        document.getElementById('gutteringFields').style.display = 'block';
+      }
+    }
+
+    function calculateCost() {
+      const serviceType = document.getElementById('serviceType').value;
+      let cost = 0;
+
+      if (serviceType === 'painting') {
+        const area = parseFloat(document.getElementById('paintingArea').value);
+        const paintLocation = document.getElementById('paintLocation').value;
+        const paintType = document.getElementById('paintType').value;
+        const complexity = document.getElementById('complexity').value;
+        const coats = parseInt(document.getElementById('coats').value);
+
+        let basePricePerSqM;
+        if (paintLocation === 'interior') {
+          basePricePerSqM = 8;  // Using the standard for interior
+          if (paintType === 'premium') basePricePerSqM += 2; // Premium adds £2
+          if (complexity === 'moderate') basePricePerSqM += 2;  // Moderate adds £2
+          if (complexity === 'complex') basePricePerSqM += 4;  // Complex adds £4
+        } else {
+          basePricePerSqM = 20;  // Using the standard for exterior
+          if (paintType === 'premium') basePricePerSqM += 10; // Premium adds £10
+        }
+
+        const coatMultiplier = coats;
+
+        cost = area * basePricePerSqM * coatMultiplier;
+      } else if (serviceType === 'jetWashing') {
+        const area = parseFloat(document.getElementById('jetWashingArea').value);
+        const surfaceType = document.getElementById('surfaceType').value;
+        const surfaceLocation = document.getElementById('surfaceLocation').value;
+        const dirtLevel = document.getElementById('dirtLevel').value;
+
+        const basePricePerSqM = surfaceType === 'wood' ? 1.0 : surfaceType === 'brick' ? 0.9 : 0.8;
+        const locationMultiplier = surfaceLocation === 'roof' ? 1.5 : surfaceLocation === 'floor' ? 1.2 : 1;
+        const dirtMultiplier = dirtLevel === 'heavy' ? 1.5 : dirtLevel === 'moderate' ? 1.2 : 1;
+
+        cost = area * basePricePerSqM * locationMultiplier * dirtMultiplier;
+      } else if (serviceType === 'guttering') {
+        const length = parseFloat(document.getElementById('gutterLength').value);
+        const gutterType = document.getElementById('gutterType').value;
+        const accessibility = document.getElementById('accessibility').value;
+
+        const basePricePerM = gutterType === 'aluminum' ? 10 : 5;
+        const accessibilityMultiplier = accessibility === 'difficult' ? 1.5 : accessibility === 'moderate' ? 1.2 : 1;
+
+        cost = length * basePricePerM * accessibilityMultiplier;
+      }
+
+      document.getElementById('estimatedCost').innerText = `Estimated Cost: £${cost.toFixed(2)}`;
+    }
+  </script>
+</body>
+</html>
