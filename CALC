@@ -7,20 +7,22 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
+      background-color: #333;
       padding: 20px;
       margin: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      color: #f4f4f9;
     }
     h1 {
-      color: #333;
+      color: #f4f4f9;
     }
     label {
       display: block;
       margin-top: 10px;
+      color: #f4f4f9;
     }
     input, select, textarea, button {
       font-size: 1em;
@@ -28,9 +30,11 @@
       padding: 10px;
       width: 100%;
       max-width: 400px;
-      border: 1px solid #ddd;
+      border: 1px solid #555;
       border-radius: 5px;
       box-sizing: border-box;
+      background-color: #444;
+      color: #f4f4f9;
     }
     button {
       background-color: #28a745;
@@ -45,19 +49,25 @@
     #estimatedCost {
       font-size: 1.5em;
       margin-top: 20px;
-      color: #555;
+      color: #f4f4f9;
     }
     .service-fields {
       display: none;
       margin-top: 20px;
     }
     .container {
-      background: white;
+      background: #444;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       max-width: 600px;
       width: 100%;
+      border: 1px solid #555;
+    }
+    .preparation-checkboxes label,
+    .additional-checkboxes label {
+      display: block;
+      margin: 5px 0;
     }
   </style>
 </head>
@@ -73,9 +83,6 @@
     </select>
 
     <div id="paintingFields" class="service-fields">
-      <label for="paintingArea">Area (sq meters):</label>
-      <input type="number" id="paintingArea" name="paintingArea">
-
       <label for="paintLocation">Location:</label>
       <select id="paintLocation" name="paintLocation">
         <option value="interior">Interior</option>
@@ -99,16 +106,18 @@
       <select id="coats" name="coats">
         <option value="1">1 Coat</option>
         <option value="2">2 Coats</option>
+        <option value="3">3 Coats</option>
       </select>
 
       <label for="prepWork">Preparation Work Needed:</label>
-      <textarea id="prepWork" name="prepWork" rows="4" cols="50"></textarea>
+      <div id="prepWork" class="preparation-checkboxes">
+        <label><input type="checkbox" name="prepWork" value="cleaning"> Cleaning</label>
+        <label><input type="checkbox" name="prepWork" value="sanding"> Sanding</label>
+        <label><input type="checkbox" name="prepWork" value="priming"> Priming</label>
+      </div>
     </div>
 
     <div id="jetWashingFields" class="service-fields">
-      <label for="jetWashingArea">Area (sq meters):</label>
-      <input type="number" id="jetWashingArea" name="jetWashingArea">
-
       <label for="surfaceType">Surface Type:</label>
       <select id="surfaceType" name="surfaceType">
         <option value="concrete">Concrete</option>
@@ -132,9 +141,6 @@
     </div>
 
     <div id="gutteringFields" class="service-fields">
-      <label for="gutterLength">Length (meters):</label>
-      <input type="number" id="gutterLength" name="gutterLength">
-
       <label for="gutterType">Gutter Type:</label>
       <select id="gutterType" name="gutterType">
         <option value="pvc">PVC</option>
@@ -149,8 +155,15 @@
       </select>
 
       <label for="additionalInfo">Additional Information:</label>
-      <textarea id="additionalInfo" name="additionalInfo" rows="4" cols="50"></textarea>
+      <div id="additionalInfo" class="additional-checkboxes">
+        <label><input type="checkbox" name="additionalInfo" value="highReach"> High Reach</label>
+        <label><input type="checkbox" name="additionalInfo" value="clogged"> Clogged</label>
+        <label><input type="checkbox" name="additionalInfo" value="repairNeeded"> Repair Needed</label>
+      </div>
     </div>
+
+    <label for="area">Area (sq meters):</label>
+    <input type="number" id="area" name="area">
 
     <button onclick="calculateCost()">Calculate</button>
 
@@ -163,11 +176,35 @@
       'john678': { name: 'John’s Painting', logo: 'logo2.png', contact: 'Contact: 555-5678' }
     };
 
+    const rates = {
+      painting: {
+        baseRate: 10, // £ per square meter
+        premiumRate: 15, // £ per square meter
+        complexity: {
+          basic: 1,
+          moderate: 1.5,
+          complex: 2
+        },
+        coats: {
+          1: 1,
+          2: 1.5,
+          3: 2
+        }
+      },
+      jetWashing: {
+        baseRate: 5 // £ per square meter
+      },
+      guttering: {
+        baseRate: 8 // £ per square meter
+      }
+    };
+
     window.onload = function() {
       const accessKey = localStorage.getItem('accessKey');
       if (tradesmanData[accessKey]) {
         const tradesman = tradesmanData[accessKey];
         document.getElementById('tradesmanName').innerText = `${tradesman.name} - Service Cost Calculator`;
+        displayServiceFields();  // Display fields immediately based on the current selection
       } else {
         alert('Invalid Access Key');
         window.location.href = 'access-key.html';
@@ -191,49 +228,27 @@
 
     function calculateCost() {
       const serviceType = document.getElementById('serviceType').value;
+      const area = parseFloat(document.getElementById('area').value);
       let cost = 0;
 
       if (serviceType === 'painting') {
-        const area = parseFloat(document.getElementById('paintingArea').value);
-        const paintLocation = document.getElementById('paintLocation').value;
         const paintType = document.getElementById('paintType').value;
         const complexity = document.getElementById('complexity').value;
-        const coats = parseInt(document.getElementById('coats').value);
+        const coats = document.getElementById('coats').value;
+        const prepWork = document.querySelectorAll('#prepWork input[type="checkbox"]:checked');
+        let prepWorkCost = 0;
+        prepWork.forEach(function(element) {
+          prepWorkCost += 10;  // Each preparation work adds £10 to the cost
+        });
 
-        let basePricePerSqM;
-        if (paintLocation === 'interior') {
-          basePricePerSqM = 8;  // Using the standard for interior
-          if (paintType === 'premium') basePricePerSqM += 2; // Premium adds £2
-          if (complexity === 'moderate') basePricePerSqM += 2;  // Moderate adds £2
-          if (complexity === 'complex') basePricePerSqM += 4;  // Complex adds £4
-        } else {
-          basePricePerSqM = 20;  // Using the standard for exterior
-          if (paintType === 'premium') basePricePerSqM += 10; // Premium adds £10
-        }
-
-        const coatMultiplier = coats;
-
-        cost = area * basePricePerSqM * coatMultiplier;
+        const rate = paintType === 'premium' ? rates.painting.premiumRate : rates.painting.baseRate;
+        cost = area * rate * rates.painting.complexity[complexity] * rates.painting.coats[coats] + prepWorkCost;
       } else if (serviceType === 'jetWashing') {
-        const area = parseFloat(document.getElementById('jetWashingArea').value);
-        const surfaceType = document.getElementById('surfaceType').value;
-        const surfaceLocation = document.getElementById('surfaceLocation').value;
-        const dirtLevel = document.getElementById('dirtLevel').value;
-
-        const basePricePerSqM = surfaceType === 'wood' ? 1.0 : surfaceType === 'brick' ? 0.9 : 0.8;
-        const locationMultiplier = surfaceLocation === 'roof' ? 1.5 : surfaceLocation === 'floor' ? 1.2 : 1;
-        const dirtMultiplier = dirtLevel === 'heavy' ? 1.5 : dirtLevel === 'moderate' ? 1.2 : 1;
-
-        cost = area * basePricePerSqM * locationMultiplier * dirtMultiplier;
+        const rate = rates.jetWashing.baseRate;
+        cost = area * rate;
       } else if (serviceType === 'guttering') {
-        const length = parseFloat(document.getElementById('gutterLength').value);
-        const gutterType = document.getElementById('gutterType').value;
-        const accessibility = document.getElementById('accessibility').value;
-
-        const basePricePerM = gutterType === 'aluminum' ? 10 : 5;
-        const accessibilityMultiplier = accessibility === 'difficult' ? 1.5 : accessibility === 'moderate' ? 1.2 : 1;
-
-        cost = length * basePricePerM * accessibilityMultiplier;
+        const rate = rates.guttering.baseRate;
+        cost = area * rate;
       }
 
       document.getElementById('estimatedCost').innerText = `Estimated Cost: £${cost.toFixed(2)}`;
