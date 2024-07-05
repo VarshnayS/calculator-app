@@ -29,7 +29,6 @@
   <label for="accessKey">Access Key:</label>
   <input type="text" id="accessKey" name="accessKey">
   <button onclick="validateAccessKey()">Submit</button>
-
   <script>
     const tradesmanData = {
       'rafal123': { name: 'Rafal Maintenance', logo: 'logo1.png', contact: 'Contact: 555-1234' },
